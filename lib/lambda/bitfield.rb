@@ -85,6 +85,14 @@ module Lambda
       inject("") { |a, b| a + b.to_s }
     end
     
+    def to_i
+      Integer(to_s, 2)
+    end
+
+    def hex
+      to_i.to_s(16)
+    end
+
     # Returns the total number of bits that are set
     # (The technique used here is about 6 times faster than using each or inject direct on the bitfield)
     def total_set

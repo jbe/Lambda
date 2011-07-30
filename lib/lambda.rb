@@ -1,6 +1,7 @@
 # encoding: UTF-8
 
 require 'parslet'
+require 'digest/sha2'
 
 module Lambda
 
@@ -14,6 +15,31 @@ module Lambda
   ID = parse('&0')
   K  = parse('&&1')
   S  = parse('&&&((2|0)|(1|0))')
+
+  O  = parse('(&(0|0)|&(0|0))')
+
+  # The universal combinator from Iota and Jot:
+  GEN = parse('&((0|&&&((2|0)|(1|0)))|&&1)')
+
+  # Church booleans:
+  YES = K
+  NO  = parse('&&0')
+  
+  AND = parse('&&((1|0)|1)')
+  OR  = parse('&&((1|1)|0)')
+  NOT = parse('&&&((2|0)|1)')
+
+  FUNCTION_NAMES = {
+    ID  => 'ID',
+    K   => 'K',
+    S   => 'S',
+    
+    NO  => 'FALSE',
+    AND => 'AND',
+    OR  => 'OR',
+    NOT => 'NOT'
+  }
+
 
   # John Tromp's tiny interpreter:
   U  = parse_blc(%{01010001101000010000000110000001100001
