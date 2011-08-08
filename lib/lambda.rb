@@ -16,10 +16,15 @@ module Lambda
   K  = parse('&&1')
   S  = parse('&&&((2|0)|(1|0))')
 
+  IDID = parse('(&(0|0)|(&0|&0))')
+
   O  = parse('(&(0|0)|&(0|0))')
 
   # The universal combinator from Iota and Jot:
   GEN = parse('&((0|&&&((2|0)|(1|0)))|&&1)')
+  #IDGEN = Application.new(ID, GEN)
+  GENID = Application.new(GEN, ID)
+  #GENGEN = Application.new(GEN, GEN)
 
   # Church booleans:
   YES = K
@@ -40,7 +45,7 @@ module Lambda
     NOT => 'NOT'
   }
 
-
+=begin
   # John Tromp's tiny interpreter:
   U  = parse_blc(%{01010001101000010000000110000001100001
        01111001111111000010111001111111000000111100001011
@@ -69,8 +74,8 @@ module Lambda
        00011010000000010110110010111101110110100101010000
        01110011100111010000001110011101000000101100000110
        110000010})
+=end
 end
-
 
 
 def Lambda(*args)

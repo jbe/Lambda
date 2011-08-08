@@ -8,17 +8,11 @@ module Lambda
 
   class Expression
 
-    TERM_MAP  = {} # identity map for terms
-    CACHE     = {} # reduction cache
+    TERMS = {} # identity map for terms
 
-    def self.cached_reductions
-      CACHE.select do |inp, outp|
-        inp != outp
-      end.map(&:first)
-    end
 
     def self.new(*params)
-      TERM_MAP[params] ||= super(*params)
+      TERMS[params] ||= super(*params)
     end
 
     def initialize(*children)
@@ -27,17 +21,12 @@ module Lambda
 
     attr_reader :children
 
-    def reduce
-      return Lambda::Omega.new if false
-      print('.')
-      CACHE[self] ||= self.class.new(*children.map(&:reduce))
-    end
-
-    def substitute(operand, depth=0)
+    def substitute(operand, depth=-1)
       self.class.new(*children.map {|c| c.substitute(operand, depth) } )
     end
 
-    def inspect(name=Lambda::FUNCTION_NAMES[self] || berre)
+    def inspect(name=nil)
+      name ||= berre #Lambda::FUNCTION_NAMES[self] || berre
       "#<λ:#{object_id.to_s(16)} #{name}>"
     end
 
@@ -97,7 +86,7 @@ module Lambda
       "\\#{name}.#{definition.church(depth+1)}"
     end
 
-    def substitute(operand, depth=0)
+    def substitute(operand, depth=-1)
       super(operand, depth + 1)
     end
 
@@ -108,13 +97,25 @@ module Lambda
     def operator; children[0]; end
     def operand;  children[1]; end
 
-    def reduce(*args)
-      red = super
-      if red.operator.is_a?(Lambda::Abstraction) 
-        red.operator.definition.
-          substitute(red.operand)#.reduce(*args)
+    REDUCTIONS = {} # reduction cache
+
+    def self.new(operator, operand)
+      if operator.is_a?(Lambda::Abstraction) 
+        case x = REDUCTIONS[[operator, operand]] 
+        when Lambda::Expression then x
+        when :working           then Lambda::OMEGA
+        when nil
+          operation = "*\n| #{operator.inspect}\n| #{operand.inspect}"
+          REDUCTIONS[[operator, operand]] = :working
+          r = operator.substitute(operand).definition
+          REDUCTIONS[[operator, operand]] = r
+          puts "#{operation}\n= #{r.inspect}"
+          r
+        else
+          raise "unexpected #{x.inspect} in reduction cache"
+        end
       else
-        red
+        super
       end
     end
 
@@ -152,10 +153,9 @@ module Lambda
 
     attr_reader :distance
 
-    def substitute(operand, depth=0)
+    def substitute(operand, depth=-1)
       distance == depth ? operand : self
     end
-
 
     def blc_size
       distance + 2
@@ -179,7 +179,6 @@ module Lambda
     def abstraction_height; 0; end
     def closed?;      false; end
     def normal_form?; true;  end
-    def reduce(*args);self; end
 
   end
 
@@ -187,7 +186,6 @@ module Lambda
     def inspect;  super('OMEGA'); end
     def church;   'OMEGA';        end
     def berre;    'OMEGA';        end
-
     def self.new; @instance ||= super; end
   end
 
