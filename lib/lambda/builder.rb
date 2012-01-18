@@ -4,7 +4,7 @@
 module Lambda
 
   # Constructs lambda expressions from a series of events
-  # (method calls) corresponding to a deBruijin-like tape.
+  # (method calls) corresponding to a De Bruijin-like tape.
   class Builder
 
     def initialize

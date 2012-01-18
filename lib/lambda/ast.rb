@@ -26,7 +26,7 @@ module Lambda
     end
 
     def inspect(name=nil)
-      name ||= berre #Lambda::FUNCTION_NAMES[self] || berre
+      name ||= Lambda::STDENV.get_name(self) || berre
       "#<λ:#{object_id.to_s(16)} #{name}>"
     end
 
@@ -109,7 +109,6 @@ module Lambda
           REDUCTIONS[[operator, operand]] = :working
           r = operator.substitute(operand).definition
           REDUCTIONS[[operator, operand]] = r
-          puts "#{operation}\n= #{r.inspect}"
           r
         else
           raise "unexpected #{x.inspect} in reduction cache"

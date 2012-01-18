@@ -5,45 +5,34 @@ require 'digest/sha2'
 
 module Lambda
 
-  require 'lambda/ast'
-  require 'lambda/bitfield'
-  require 'lambda/builder'
-  require 'lambda/berre_parser'
-  require 'lambda/parsers'
+  require 'lambda/bitfield'     #
+  require 'lambda/environment'  # lambda term name mapping
+
+  STDENV = Environment.new
+  
+  require 'lambda/ast'          # lambda term node classes
+  require 'lambda/builder'      # lambda term ast build helper
+  require 'lambda/berre_parser' # the default parser
+  require 'lambda/parsers'      # other parsers
+
 
   # Combinators:
-  ID = parse('&0')
-  K  = parse('&&1')
-  S  = parse('&&&((2|0)|(1|0))')
-
-  IDID = parse('(&(0|0)|(&0|&0))')
-
-  O  = parse('(&(0|0)|&(0|0))')
-
-  # The universal combinator from Iota and Jot:
-  GEN = parse('&((0|&&&((2|0)|(1|0)))|&&1)')
-  #IDGEN = Application.new(ID, GEN)
-  GENID = Application.new(GEN, ID)
-  #GENGEN = Application.new(GEN, GEN)
+  STDENV.name 'I',      parse('&0')
+  STDENV.name 'A',      parse('&(0|0)')
+  STDENV.name 'K',      parse('&&1')
+  # STDENV.name 'S',      parse('&&&((2|0)|(1|0))')
+  STDENV.name 'O',      parse('(A|A)')
 
   # Church booleans:
-  YES = K
-  NO  = parse('&&0')
-  
-  AND = parse('&&((1|0)|1)')
-  OR  = parse('&&((1|1)|0)')
-  NOT = parse('&&&((2|0)|1)')
+  STDENV.name 'TRUE',   parse('&&1')
+  STDENV.name 'FALSE',  parse('&&0')
+  STDENV.name 'NOT',    parse('&((0|FALSE)|TRUE)')
+  STDENV.name 'AND',    parse('&&((0|1)|FALSE)')
+  STDENV.name 'OR',     parse('&&((1|TRUE)|0)')
 
-  FUNCTION_NAMES = {
-    ID  => 'ID',
-    K   => 'K',
-    S   => 'S',
-    
-    NO  => 'FALSE',
-    AND => 'AND',
-    OR  => 'OR',
-    NOT => 'NOT'
-  }
+
+  # The universal combinator from Iota and Jot (^x.xSK)
+  # STDENV.name 'GEN',    parse('&((0|S)|K)')
 
 =begin
   # John Tromp's tiny interpreter:
@@ -75,6 +64,13 @@ module Lambda
        01110011100111010000001110011101000000101100000110
        110000010})
 =end
+
+
+  def self.inspect_cache
+    puts 'Nodes: '       + Expression::TERMS.size.to_s
+    puts 'Reductions: '  + Application::REDUCTIONS.size.to_s
+  end
+
 end
 
 

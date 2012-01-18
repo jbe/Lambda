@@ -9,12 +9,13 @@ module Lambda
     rule(:lamb)   { str('&') }
     rule(:eof)    { any.absnt? }
 
-    rule(:expression)   { abstraction | application | parameter }
+    rule(:expression)   { abstraction | application | parameter | name }
 
     rule(:parameter)    { match('[0-9]').repeat(1).as(:parameter) >> space? }
     rule(:abstraction)  { lamb >> expression.as(:abstraction) }
     rule(:application)  { lparen >> expression.as(:app_l) >>
       pipe >> expression.as(:app_r) >> rparen }
+    rule(:name) { match('[A-Za-z_]').repeat(1).as(:name) }
 
     root(:expression)
   end
@@ -26,6 +27,10 @@ module Lambda
     end
     rule(:app_l => simple(:x), :app_r => simple(:y)) do
       Application.new(x, y)
+    end
+    rule(:name => simple(:x)) do
+      Lambda::STDENV.get_term(x.to_s) ||
+        raise('Unknown variable: ' + x.to_s)
     end
   end
 
